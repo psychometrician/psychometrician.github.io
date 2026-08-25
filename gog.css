@@ -1,0 +1,642 @@
+/* gog.css — the book's hand-written stylesheet, and it began for one reason.
+ *
+ * The site this book is linked from loads it too, staged in by that project's
+ * pre-render, so a plot and its refusals look the same in both places. Anything
+ * written here reaches both; anything true of only one belongs in that site's
+ * own stylesheet.
+ *
+ * Two things live here now. The first is below: how a `gog:` diagnostic is set,
+ * which is what the file was written for. The second is at the end: what color a
+ * specification's words are printed in, which arrived later and is the same
+ * question one format down. `grammar.qmd` states that rule for the reader,
+ * `gog-syntax.html` decides which words it applies to, and `gog-syntax.lua` says
+ * the same thing in LaTeX for the printed edition.
+ *
+ * A `gog:` diagnostic is a paragraph written on a single line. That is the right
+ * shape for the engine to emit: a message goes to stderr, to an R condition, to a
+ * Python exception and to a JavaScript `Error`, and none of those knows how wide
+ * anything is. Deciding a column count in `legality.rs` would be the wrong layer
+ * choosing, and it would put a page's geometry inside the grammar.
+ *
+ * So the wrapping belongs to whoever is displaying it, and here that is the page.
+ * Quarto renders chunk output as a bare `<pre><code>`, which scrolls sideways
+ * rather than wrapping, so a long refusal ran off the right edge and a reader saw
+ * only the half that fitted — including, for the longest ones, losing the part
+ * that says what to do instead, which is the whole point of the message.
+ *
+ * `code-overflow: wrap` does not do this. It is a Quarto option that styles
+ * *source* blocks; measured on a probe document, it leaves chunk **output**
+ * untouched, which is the block a diagnostic lands in. Hence a rule of our own.
+ *
+ * The PDF needs the same thing said in LaTeX, and `_quarto.yml` says it there with
+ * `fvextra`'s `breaklines` — on both `Highlighting` and `verbatim`, for the same
+ * source-versus-output reason.
+ */
+
+.cell-output pre,
+.cell-output pre code {
+  white-space: pre-wrap;
+  /* `break-word` rather than `anywhere`: a diagnostic is prose and breaks at its
+   * spaces, and this is only for the rare token with no space in it — a long
+   * column name, or a path. `anywhere` would split short words mid-letter to
+   * tighten a line, which reads worse than a slightly ragged edge. */
+  overflow-wrap: break-word;
+}
+
+/* ---------------------------------------------------------------------------
+ * Telling a diagnostic apart from the prose around it.
+ *
+ * A refusal used to arrive as unshaded monospace, which put it in the same
+ * visual register as body text while a *source* block got a gray box — so the
+ * one thing on the page that is the engine talking looked like the least
+ * emphasized thing on it.
+ *
+ * **Two treatments, because the grammar makes the distinction** (spec §12). A
+ * refusal is fatal and nothing was drawn; an Assumption is advice and the plot
+ * is right there beside it. Giving both the same background would flatten a
+ * difference the book actively teaches — half its diagnostic chapters turn on
+ * it — so they get the two hues that already mean this in the plots.
+ *
+ * The colors are the **engine's own palette** (`render/palette.rs`), not new
+ * ones invented in CSS: `#e15759` is its red and `#f28e2b` its orange, so a
+ * page reads as one system rather than as a plot with a stylesheet beside it.
+ * The fill is a ~10% tint of each over white, which is enough to separate the
+ * block from prose and not enough to compete with the plots.
+ *
+ * Deliberately not a callout box. Boxed asides read as an interruption here,
+ * and all 33 of them were folded into prose once already.
+ * This is a tint and a left rule on a block that already existed — no card, no
+ * icon, no title bar, nothing that has to be dismissed to keep reading.
+ *
+ * The left rule carries the same information as the fill, so the two kinds stay
+ * distinguishable without relying on hue alone.
+ * ------------------------------------------------------------------------- */
+
+/* A refusal: fatal, and no plot was drawn. */
+.cell-output-error > pre {
+  background-color: #fceeee;
+  border-left: 3px solid #e15759;
+  padding: 0.6rem 0.8rem;
+  border-radius: 0 3px 3px 0;
+}
+
+/* An Assumption: the engine drew the plot and is telling you what it assumed. */
+.cell-output-stderr > pre {
+  background-color: #fef4ea;
+  border-left: 3px solid #f28e2b;
+  padding: 0.6rem 0.8rem;
+  border-radius: 0 3px 3px 0;
+}
+
+/* `cell-output-stdout` is deliberately left alone: it is not a diagnostic. It is
+ * whatever the chunk printed — a `head()` of the data, a parsed spec — and it
+ * belongs in the neutral register that plain program output already has. */
+
+/* The `<code>` inside inherits the tint rather than painting its own. Quarto
+ * gives a bare `pre > code` a transparent background already, but saying so here
+ * stops a theme change from putting a gray rectangle inside the tinted one. */
+.cell-output-error > pre > code,
+.cell-output-stderr > pre > code {
+  background-color: transparent;
+}
+
+/* The hex sticker on the preface -------------------------------------------
+ *
+ * Quarto drops `book: cover-image:` in as the first thing after the landing
+ * page's opening heading, with `img-fluid`, which only caps it at the column
+ * width. The file is 1002px wide, so left alone it fills the text column and
+ * the preface starts below the fold. A badge is meant to be taken in at a
+ * glance, so it is sized like one. The percentage cap is what keeps it from
+ * crowding a narrow phone screen. The file is drawn at more than five times
+ * the width it is shown at, which is what keeps it sharp on a retina screen.
+ *
+ * The four margins are written out rather than shortened to `auto`, because
+ * Quarto's own rule floats this image right and sets a left margin to hold the
+ * prose off it. A shorthand with `auto` in it replaces that value, and `auto`
+ * is zero on a float, so the paragraph ran flush against the sticker's edge.
+ * ------------------------------------------------------------------------- */
+.quarto-cover-image {
+  display: block;
+  width: 190px;
+  max-width: 45%;
+  margin: 6rem 0 2.25rem 2rem;
+}
+
+/* Quarto floats the cover right, and a float is placed where it appears in the
+ * source, which is directly under the heading. So the sticker started level
+ * with the slogan while the prose beside it started two blocks lower, and the
+ * two read as though the sticker had drifted upward. The top margin above is
+ * the height of the slogan and the badge together, which drops the sticker's
+ * top edge onto the first line of the opening paragraph.
+ *
+ * It is reset on a narrow screen, where the layout is no longer two columns.
+ * The float still applies, but the text wrapping beside a 45%-wide sticker is
+ * three or four words per line, so holding the sticker down would open a band
+ * of white above it rather than align it with anything. */
+@media (max-width: 767.98px) {
+  .quarto-cover-image {
+    margin-top: 1.75rem;
+  }
+}
+
+/* The slogan under the sticker ---------------------------------------------
+ *
+ * The same line that closes every post on the site and every message about the
+ * package. It is set as part of the badge rather than as prose, so it is
+ * styled here instead of being bolded in the text.
+ *
+ * A reader meets it before it means anything: *agog* is explained two sections
+ * down the page. That order is the intended one. The pun asks a question the
+ * preface then answers.
+ *
+ * `fit-content` is what puts the rule under the words instead of under the
+ * whole column. The line is aligned left rather than centered, because the
+ * sticker floats right and a centered line would be centered in whatever
+ * width the float left over, which moves with the window. Left of the float
+ * it reads as a tagline under the heading, which is the arrangement the site
+ * uses.
+ * ------------------------------------------------------------------------- */
+.gog-slogan {
+  width: fit-content;
+  margin: -0.95rem 0 2.4rem;
+  font-weight: 700;
+  font-size: 1.05rem;
+  letter-spacing: 0.01em;
+  border-bottom: 3px solid #ffdba4;
+  padding-bottom: 1px;
+}
+
+.gog-slogan > p {
+  margin-bottom: 0;
+}
+
+/* The same line closing the afterword, which is what makes the two a bookend.
+ * How it is set does not change; only the space above it does. The opening copy
+ * is pulled up tight under the title, and this one follows a paragraph, so it
+ * gets as much room above as the underline leaves below. It has to be written
+ * after `.gog-slogan`, since equal specificity is settled by source order. */
+.gog-slogan-close {
+  margin-top: 2.4rem;
+}
+
+/* The DOI badge, directly under the slogan --------------------------------
+ *
+ * The book is deposited on Zenodo, and the badge is the one-glance version of
+ * what the *Installing gog* section says in a sentence. It sits at the top
+ * because a reader deciding whether to cite this wants that answer before the
+ * preface, not after it.
+ *
+ * It is placed left, under the slogan, so the two read as one block against
+ * the sticker floating opposite. The negative top margin closes the gap the
+ * slogan's own bottom margin opens, which is sized for body text rather than
+ * for a 20px badge. HTML only: the printed edition carries the DOI in the
+ * same section's prose, and a badge is a link, which a page cannot be.
+ * ------------------------------------------------------------------------- */
+.gog-doi {
+  margin: -1.9rem 0 2.4rem;
+}
+
+.gog-doi > p {
+  margin-bottom: 0;
+}
+
+/* ---------------------------------------------------------------------------
+ * The dark theme
+ *
+ * Everything above paints on white, because that is the ground both sites had
+ * when it was written. `theme:` now declares a light and a dark, and Quarto
+ * puts `quarto-dark` on the body when the reader picks the second, so this is
+ * the same design said again on a dark ground.
+ *
+ * The plots are deliberately not in it. Every SVG the engine writes opens with
+ * an opaque white canvas, so a plot stays a light figure on a dark page rather
+ * than turning into something the reader has never seen. That is the arrangement
+ * a printed figure has always had, and it keeps one picture in both themes: the
+ * plot under the code is the file a reader would get from the same sentence.
+ *
+ * The two tints are the light ones at dark-page weight, and the left rules keep
+ * their engine colors, since the rule is what tells a refusal from an assumption
+ * without relying on the fill.
+ * ------------------------------------------------------------------------- */
+
+.quarto-dark .cell-output-error > pre {
+  background-color: #2c1c1c;
+  border-left-color: #e15759;
+}
+
+.quarto-dark .cell-output-stderr > pre {
+  background-color: #2c2418;
+  border-left-color: #f28e2b;
+}
+
+.quarto-dark .cell-output-error > pre > code,
+.quarto-dark .cell-output-stderr > pre > code {
+  color: #ece6dd;
+}
+
+/* King Sejong's preface has no rule here, and that is deliberate.
+ *
+ * The Wikimedia facsimile is ink and nothing else: its strokes carry no `fill`,
+ * so they take SVG's default black, and there is no background behind them. On
+ * a white page that is the whole point. On a dark one the glyphs are black on
+ * near-black and the figure disappears.
+ *
+ * The fix is in the picture rather than in this file. `images/` carries a
+ * derived copy, `Hunmin_Jeongeum_paper.svg`, which is the original with a white
+ * ground and a margin added, and the preface names that one. Three reasons it
+ * belongs there and not here. A stylesheet reaches the web edition only, and the
+ * same figure is printed in the PDF. It stays vector either way, where a raster
+ * copy would soften 816 pages' worth of resolution at exactly one figure. And a
+ * ground is a property of the artwork: this is a facsimile of ink on paper, so
+ * it is given paper, rather than being inverted into white strokes that no
+ * woodblock ever pulled.
+ *
+ * What that leaves for CSS is nothing, which is the right amount. The other two
+ * images already answer the question themselves: `pipeline.svg` opens with a
+ * peach rect over the whole canvas, and `Pronounciation.png` is a photograph on
+ * black. A future figure that is ink with no ground wants the same treatment the
+ * preface got, in `images/`. */
+
+/* The peach reads as a highlighter on white and as a glare on black. This is
+ * the same color with the light taken out of it, and it is the shade the site
+ * already uses for the slogan in its own dark theme. */
+.quarto-dark .gog-slogan {
+  border-bottom-color: #e9c48a;
+}
+
+/* ---------------------------------------------------------------------------
+ * Every specification in one ink, and the accents that go on top
+ *
+ * A gog specification is a sentence. Coloring its words by what a parser thinks
+ * they are works against reading it as one, because `data`, `point` and `x` are
+ * the same kind of thing to a reader and three different colors to a
+ * highlighter. So every token takes the body's own ink.
+ *
+ * This is the base, and it is what a block that is not a gog specification
+ * keeps: an install line, a shell command, the R that loads a table. The
+ * accents below go on top of it, and only on a specification.
+ *
+ * Done by overriding rather than by `highlight-style: none`, which also removes
+ * the wrapper that draws the panel and the copy button attached to it.
+ *
+ * The selectors are two classes deep on purpose. Quarto paints a token with
+ * `code span.kw`, so a single-class rule loses the cascade whichever stylesheet
+ * loads last. Matching once, here, avoids `!important` on a dozen token names.
+ * ------------------------------------------------------------------------- */
+
+body.quarto-light div.sourceCode code span,
+body.quarto-light pre code span {
+  color: #1d1a16;
+}
+
+body.quarto-dark div.sourceCode code span,
+body.quarto-dark pre code span {
+  color: #eee8df;
+}
+
+/* ---------------------------------------------------------------------------
+ * A gog sentence, colored by what each word is
+ *
+ * The paragraph above says a parser sorts a sentence into the wrong bins, and
+ * that is still true. What changed is that gog has bins of its own: a closed
+ * list of sixty-two ordinary words in eleven kinds, which `gog-syntax.html`
+ * paints as a table, a mark, a channel or a transform. That reading is the same
+ * in all four languages, so the tabs of one sentence come out looking like one
+ * sentence, which no per-language highlighter could manage. R marks `data` as a
+ * function and Python marks nothing at all, and neither of them can see `point`.
+ *
+ * The palette is the kernel chapter's own paragraph rather than a designer's
+ * choice, which is what makes it worth a reader's attention: five kinds build a
+ * plot, and the other six refine or arrange one and are never required.
+ *
+ * So four hues for the four builders that are words, weight for the fifth
+ * (an operator is punctuation and already reads as itself), and one quiet ink
+ * for all six that refine. Your own tables, columns and values keep the body's
+ * ink, which is the first thing the coloring says: these words are gog's, those
+ * are yours.
+ *
+ * The four hues sit at the same lightness as each other, within a tenth of a
+ * stop in both themes, so no kind shouts louder than the rest and the sentence
+ * still reads as one line rather than four fragments. Every one clears 4.5:1
+ * against the panel it sits on, and the refining ink clears it too while staying
+ * far enough from the body's ink that a refining word still reads as gog's.
+ * ------------------------------------------------------------------------- */
+
+body.quarto-light {
+  --gog-table:     #1a6b54;
+  --gog-mark:      #b04a10;
+  --gog-channel:   #2b5fa8;
+  --gog-transform: #7a3f9c;
+  --gog-refine:    #6e655c;
+  --gog-operator:  #1d1a16;
+}
+
+body.quarto-dark {
+  --gog-table:     #5fc9a8;
+  --gog-mark:      #f0a15f;
+  --gog-channel:   #84b4ee;
+  --gog-transform: #cc9df0;
+  --gog-refine:    #9d9082;
+  --gog-operator:  #eee8df;
+}
+
+.gog-table     { --gog-ink: var(--gog-table); }
+.gog-mark      { --gog-ink: var(--gog-mark); }
+.gog-channel   { --gog-ink: var(--gog-channel); }
+.gog-transform { --gog-ink: var(--gog-transform); }
+.gog-refine    { --gog-ink: var(--gog-refine); }
+
+/* JavaScript's six words for the operators it cannot overload. They take the
+ * body's ink and a little weight rather than a color of their own: the other
+ * three languages write `+ * | /` there, which is punctuation and already reads
+ * as itself, so a fifth hue would make this tab the loud one instead of the
+ * matching one. The weight is what stops `plot(` reading as a function the
+ * author wrote. */
+.gog-operator {
+  --gog-ink: var(--gog-operator);
+  font-weight: 600;
+}
+
+/* One rule reads the property, and it carries the specificity.
+ *
+ * The monochrome rule above is `body.quarto-light div.sourceCode code span`,
+ * which is two classes and four elements. A plain `.gog-mark` is one class and
+ * loses the cascade however late this file loads, so the accent landed on
+ * nothing and every sentence stayed grey. The attribute selector counts as a
+ * class, which puts this at three and four, and it matches all five names
+ * without listing them twice per theme. */
+body.quarto-light div.sourceCode code span[class^="gog-"],
+body.quarto-dark div.sourceCode code span[class^="gog-"] {
+  color: var(--gog-ink);
+}
+
+/* A comment is still worth telling apart from the code around it, and italic
+ * does that without reaching for a second color. */
+body.quarto-light div.sourceCode code span.co,
+body.quarto-dark div.sourceCode code span.co {
+  font-style: italic;
+  opacity: 0.72;
+}
+
+/* ---------------------------------------------------------------------------
+ * The footer
+ *
+ * One footer, two sites, and it lives here because they are one project and a
+ * second copy of a design is how they would drift into looking like two.
+ *
+ * Licences on the left, because they are the small print. The row of links on
+ * the right, because that is what a reader who has reached the end is looking
+ * for. Both regions are Quarto's; what follows is their sizing, their color and
+ * how they stack on a phone.
+ *
+ * The width rule is here too, and it used to not be. The reasoning then was
+ * that the book, laying out with a sidebar and a table of contents, has no
+ * single writing column to line up with — true, and it missed the actual
+ * defect: with nothing holding it, the footer's contents ran to the edges of
+ * however wide the monitor was, licences at one horizon and icons at the
+ * other. A footer is not allowed to expand with the glass. So the contents
+ * are held to the same measure the site holds its own to, centered; the band
+ * behind them still spans the window.
+ * ------------------------------------------------------------------------- */
+
+/* `footer.footer .nav-footer` rather than `.nav-footer`: the framework sets
+ * the side padding with `footer.footer .nav-footer, #quarto-header>nav`,
+ * which is (0,2,1) and beats a bare class. The site pairs its navbar with the
+ * same numbers on its own side; the navbar is that site's alone, so only the
+ * footer half lives here. */
+footer.footer .nav-footer {
+  max-width: 1135px;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+/* Narrow screens get their gutter back, since there is nothing to line up
+ * with once the layout collapses to one column. */
+@media (max-width: 991.98px) {
+  footer.footer .nav-footer {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+
+/* Each licence is one unit. Left to itself the line broke wherever it ran out of
+ * room, which put "Apache 2.0." alone on a second line looking like a mistake.
+ * As inline blocks the two sentences can only break *between* each other, so a
+ * narrow footer gets two whole lines instead of one and a fragment. */
+.nav-footer .licence {
+  display: inline-block;
+  margin-right: 0.5rem;
+}
+
+/* The licence text gets the room it needs and the icons take only their own
+ * width, rather than the two regions splitting the bar evenly. Their own side
+ * padding comes off too: the row is already held to the writing's column, and a
+ * second inset inside it put the licences sixteen pixels right of everything
+ * above them. */
+.nav-footer-left {
+  flex: 1 1 auto;
+  min-width: 0;
+  text-align: left;
+  padding-left: 0;
+}
+
+.nav-footer-right {
+  flex: 0 0 auto;
+  padding-right: 0;
+}
+
+/* The follow row. Bigger than the licence text beside it, because these are the
+ * only things in the footer anyone clicks.
+ *
+ * Hover changes the *color* rather than only the opacity. Raising opacity moves
+ * a muted grey toward a slightly less muted grey, which on a busy page is not
+ * enough to read as a response. Going to near-black on a light page and to
+ * near-white on a dark one is unmistakable in both, and it is the same distance
+ * travelled either way. */
+.nav-footer .nav-item .nav-link {
+  font-size: 1.18rem;
+  padding: 0.2rem 0.42rem;
+  opacity: 1;
+  transition: color 0.14s ease, transform 0.14s ease;
+}
+
+body.quarto-light .nav-footer .nav-item .nav-link {
+  color: #8b8279;
+}
+
+body.quarto-light .nav-footer .nav-item .nav-link:hover,
+body.quarto-light .nav-footer .nav-item .nav-link:focus-visible {
+  color: #100e0b;
+  transform: translateY(-2px);
+}
+
+body.quarto-dark .nav-footer .nav-item .nav-link {
+  color: #8d8478;
+}
+
+body.quarto-dark .nav-footer .nav-item .nav-link:hover,
+body.quarto-dark .nav-footer .nav-item .nav-link:focus-visible {
+  color: #fffaf2;
+  transform: translateY(-2px);
+}
+
+.nav-footer {
+  border-top: 1px solid var(--bs-border-color, #e2dbd1);
+  font-size: 0.92rem;
+  opacity: 0.85;
+}
+
+.quarto-dark .nav-footer { border-top-color: #352f26; }
+
+/* On a phone the two regions stack and centre: icons first, because they are
+ * what someone reaching the end of a page is looking for, and the licences
+ * underneath as the small print they are. */
+@media (max-width: 575px) {
+  .nav-footer {
+    flex-direction: column;
+    align-items: center;
+    row-gap: 0.15rem;
+  }
+
+  .nav-footer-right { order: 1; }
+  .nav-footer-left  { order: 2; text-align: center; }
+
+  .nav-footer .licence {
+    display: block;
+    margin-right: 0;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * The theme toggle
+ *
+ * Quarto ships the control as a switch and nothing else, which says that
+ * something can be flipped without saying what. A sun and a moon say which way
+ * you are going, and they cost no request: Bootstrap Icons is already loaded,
+ * so the glyph is a `::before` on the link and the switch it draws is left
+ * alone.
+ *
+ * Here rather than on the site's side for the reason the footer is: the book
+ * and the site are one project. What stays over there is the *color* of this
+ * control against that site's bar, which the book has no equivalent of.
+ * ------------------------------------------------------------------------- */
+
+/* A sun in light mode and a moon in dark, before the toggle rather than instead
+ * of it. Quarto ships the control as an empty `<i class="bi">` inside the link,
+ * so the glyph goes on the link's own `::before` and the switch it already
+ * draws is left alone. Bootstrap Icons is loaded by the theme, so this costs no
+ * request: `\f5a1` is `sun-fill`, `\f495` is `moon-stars-fill`. */
+.quarto-color-scheme-toggle::before {
+  font-family: "bootstrap-icons", sans-serif;
+  content: "\f5a1";
+  font-size: 0.98rem;
+  margin-right: 0.4rem;
+  /* No `vertical-align` here. The link is a flex container, so the two glyphs
+   * are centered against each other by `align-items` and a baseline nudge only
+   * fights it. `line-height: 1` matters though: the sun is a font glyph and
+   * carries a line box, while the switch beside it is a background image with
+   * no ascender or descender, so an inherited 1.7 line height sits the two on
+   * different centers. That is the misalignment. */
+  line-height: 1;
+}
+
+/* The switch is drawn by `background-image` on the `::before` of this `<i>`, and
+ * the `<i>` itself is the flex item. Centering the link's children lines up the
+ * `<i>` box, not the picture inside it, so the `<i>` has to center its own
+ * content as well. */
+.quarto-color-scheme-toggle .bi {
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
+}
+
+body.quarto-dark .quarto-color-scheme-toggle::before {
+  content: "\f495";
+}
+
+.quarto-color-scheme-toggle {
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Bigger, because these three are the only controls in the bar and they were
+ * sized for decoration rather than for hitting. The sun and moon come from the
+ * icon font, the switch beside them is a background image, and the search glyph
+ * is an inline SVG, so each needs its own property. */
+.quarto-color-scheme-toggle::before {
+  font-size: 1.22rem;
+  margin-right: 0.45rem;
+}
+
+.quarto-color-scheme-toggle .bi::before {
+  height: 1.3rem;
+  width: 1.3rem;
+  background-size: 1.3rem 1.3rem;
+}
+
+/* The toggle is an `<a>`, so the navbar's growing-underline rule and Bootstrap's
+ * link underline both land on it. It is a control rather than a link. */
+.quarto-color-scheme-toggle,
+.quarto-color-scheme-toggle:hover {
+  text-decoration: none;
+}
+
+.quarto-color-scheme-toggle::after {
+  display: none;
+}
+
+/* ---------------------------------------------------------------------------
+ * The book's control row
+ *
+ * Four things sit in the sidebar header: the sun or moon, the switch it labels,
+ * the source link, and the reader-mode toggle. Quarto emits them in the order
+ * source, switch, reader, and leaves them at three different sizes.
+ *
+ * The theme control goes first because it is the one a reader uses while
+ * reading, and because that is where the site keeps it. `order: -1` rather than
+ * numbering all three: the source link has no class of its own to select, so
+ * moving the two that do is enough and nothing depends on a selector for a bare
+ * link.
+ * ------------------------------------------------------------------------- */
+
+.sidebar-tools-main {
+  /* Quarto already makes this `inline-flex`; what it does not do is center the
+   * items against each other, and they are three different kinds of drawing. The
+   * sun is a font glyph with a line box, the switch and the reader mark are
+   * background images with no ascender, and the source mark is a font glyph
+   * again. Left to the baseline they sit on three different centers. */
+  align-items: center;
+}
+
+.sidebar-tools-main .quarto-color-scheme-toggle { order: -1; }
+.sidebar-tools-main .quarto-reader-toggle { order: 1; }
+
+/* One size for the row. Quarto sets the tools to `.875rem` and draws the switch
+ * and the reader mark as 1rem images, so the source mark came out smaller than
+ * the two beside it. These are the only controls on the page, so they are sized
+ * to be hit rather than to be decorative, and all four match. */
+.sidebar-navigation .sidebar-tools-main .quarto-navigation-tool {
+  font-size: 1.12rem;
+  /* Quarto dims every tool to 70%. That is a hairline on a dark ground, and
+   * these are the controls, not ornament. */
+  opacity: 0.85;
+}
+
+.sidebar-tools-main .quarto-color-scheme-toggle::before {
+  font-size: 1.12rem;
+  margin-right: 0.34rem;
+}
+
+.sidebar-tools-main .quarto-color-scheme-toggle .bi::before,
+.sidebar-tools-main .quarto-reader-toggle .bi::before {
+  height: 1.12rem;
+  width: 1.12rem;
+  background-size: 1.12rem 1.12rem;
+}
+
+.sidebar-navigation .sidebar-tools-main .quarto-navigation-tool:hover {
+  opacity: 1;
+}

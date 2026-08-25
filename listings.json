@@ -1,0 +1,16 @@
+[
+  {
+    "listing": "/archive.html",
+    "items": [
+      "/posts/one-word-makes-it-move/index.html",
+      "/posts/one-engine-four-languages/index.html"
+    ]
+  },
+  {
+    "listing": "/index.html",
+    "items": [
+      "/posts/one-word-makes-it-move/index.html",
+      "/posts/one-engine-four-languages/index.html"
+    ]
+  }
+]
